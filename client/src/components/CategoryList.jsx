@@ -1,24 +1,17 @@
 import { Box, Button, Typography, Dialog } from '@mui/material'
-import { useState, useEffect } from 'react'
-import { fetchCategories, fetchFilms, saveCategories } from '../api'
+import { useState } from 'react'
+import { saveCategories } from '../api'
 import CategoryEditor from './CategoryEditor'
 import Category from './Category'
 import InfoSnackbar from '../helpers/InfoSnackbar.jsx'
+import useFilmsAndCategories from '../hooks/useFilmsAndCategories.js'
+import FullscreenLoader from './FullscreenLoader.jsx'
 
 const CategoryList = () => {
-  const [categories, setCategories] = useState([])
   const [deletedCategories, setDeletedCategories] = useState([])
-  const [films, setFilms] = useState([])
   const [editingCategory, setEditingCategory] = useState(null)
   const [isSaved, setIsSaved] = useState(false)
-
-  useEffect(() => {
-    Promise.all([fetchCategories(), fetchFilms()])
-      .then(([catData, filmData]) => {
-        setCategories(catData)
-        setFilms(filmData)
-      })
-  }, [])
+  const {categories, setCategories, films, isLoading, reload} = useFilmsAndCategories()
 
   const handleSave = async () => {
     const payload = {
@@ -29,13 +22,16 @@ const CategoryList = () => {
           name: category.name,
           newSubCategories: category.subCategories.filter(subCategory => subCategory.isNew && !subCategory.isDeleted),
           deletedSubCategories: category.subCategories.filter(subCategory => subCategory.isDeleted),
-          updatedSubCategories: category.subCategories.filter(subCategory => subCategory.isEdited && !subCategory.isNew)
+          updatedSubCategories: category.subCategories.filter(subCategory => {
+            return subCategory.isEdited && !subCategory.isNew && !subCategory.isDeleted
+          })
         }
       }),
       deletedCategories
     }
     await saveCategories(payload)
     setIsSaved(true)
+    await reload()
   }
 
   const handleEditCategory = (updatedCat) => {
@@ -81,6 +77,10 @@ const CategoryList = () => {
         />
       </Dialog>
     )
+  }
+
+  if (isLoading) {
+    return <FullscreenLoader/>
   }
 
   return (

@@ -6,7 +6,7 @@ const CategoryEditor = ({category, allFilms, onClose, onSave, onDelete}) => {
   const [name, setName] = useState(category.name)
   const [subCategories, setSubCategories] = useState(category.subCategories || [])
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [isNew, setIsNew] = useState(category.name === '')
+  const isNew = category.name === ''
 
   const addSubCategory = () => {
     setSubCategories([...subCategories, {name: '', filmIds: [], isNew: true}])
@@ -27,7 +27,7 @@ const CategoryEditor = ({category, allFilms, onClose, onSave, onDelete}) => {
     setSubCategories(prevSubs => {
       if (subCategory.id) {
         return prevSubs.map(sub => {
-          if (sub.name === subCategory.name) {
+          if (sub.id === subCategory.id) {
             return {...sub, isDeleted: true}
           }
           return sub
@@ -56,13 +56,19 @@ const CategoryEditor = ({category, allFilms, onClose, onSave, onDelete}) => {
 
       {subCategories.filter(subCategory => !subCategory.isDeleted).map((subCategory, subCategoryIndex) => (
         <Box sx={{display: 'grid', mt: 2, ml: 2}} key={subCategoryIndex}>
-          <Button sx={{justifySelf: 'end', fontSize: 12}} color="error" onClick={() => deleteSubCategory(subCategory)}>Удалить подкатегорию</Button>
+          <Button
+            sx={{justifySelf: 'end', fontSize: 12}}
+            color="error"
+            onClick={() => deleteSubCategory(subCategory)}
+          >
+            Удалить подкатегорию
+          </Button>
           <TextField
             fullWidth
             value={subCategory.name}
             onChange={e => updateSubCategory(subCategory, 'name', e.target.value)}
             label="Название подкатегории"
-            sx={{mt: 1 }}
+            sx={{mt: 1}}
           />
           <Autocomplete
             disabled={!subCategory.name}
@@ -74,7 +80,9 @@ const CategoryEditor = ({category, allFilms, onClose, onSave, onDelete}) => {
             onChange={(_, selectedFilms) => {
               updateSubCategory(subCategory, 'filmIds', selectedFilms.map(film => film.id))
             }}
-            renderInput={(params) => <TextField {...params} label="Список фильмов" variant="outlined"/>}
+            renderInput={
+              (params) => <TextField {...params} label="Список фильмов" variant="outlined"/>
+            }
           />
         </Box>
       ))}
